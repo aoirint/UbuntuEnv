@@ -17,17 +17,18 @@ Vagrant.configure("2") do |config|
     vb.memory = "1024"
     # vb.gui = true
   end
-  
-  config.vm.provision "shell", inline: <<-SHELL
+
+  config.vm.provision :root_user, type: "shell", inline: <<-SHELL
     apt-get update
 
+    # Install Docker
     apt-get install -y \
       apt-transport-https \
       ca-certificates \
       curl \
       gnupg-agent \
       software-properties-common
-    
+
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
 
     add-apt-repository -y \
@@ -41,10 +42,50 @@ Vagrant.configure("2") do |config|
       docker-ce \
       docker-ce-cli \
       containerd.io
-    
+
     curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     chmod +x /usr/local/bin/docker-compose
-    
+
     adduser vagrant docker
+
+
+    # Install pyenv dependencies
+    apt-get install -y --no-install-recommends \
+      make \
+      build-essential \
+      libssl-dev \
+      zlib1g-dev \
+      libbz2-dev \
+      libreadline-dev \
+      libsqlite3-dev \
+      wget \
+      curl \
+      llvm \
+      libncurses5-dev \
+      xz-utils \
+      tk-dev \
+      libxml2-dev \
+      libxmlsec1-dev \
+      libffi-dev \
+      liblzma-dev
+
+    apt-get install -y \
+      git
   SHELL
+
+  config.vm.provision :vagrant_user, type: "shell", privileged: false, inline: <<-SHELL
+    # Install pyenv
+    git clone https://github.com/pyenv/pyenv.git ~/.pyenv
+    echo 'export PYENV_ROOT="$HOME/.pyenv"' >> ~/.bashrc
+    echo 'export PATH="$PYENV_ROOT/bin:$PATH"' >> ~/.bashrc
+    echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.bashrc
+
+    export PYENV_ROOT="$HOME/.pyenv"
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    eval "$(pyenv init -)"
+
+    pyenv install 3.9.0
+    pyenv global 3.9.0
+  SHELL
+
 end
