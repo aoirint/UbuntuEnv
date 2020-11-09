@@ -1,6 +1,8 @@
 # UbuntuEnv
 
-This mounts `$HOME/Projects` to `/home/vagrant/Projects`.
+Host `$HOME/Projects` is mounted to VM `/home/vagrant/Projects`.
+
+Port 55000-55050 is forwarded to the host.
 
 ```bash
 # Start VM
